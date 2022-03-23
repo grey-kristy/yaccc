@@ -51,7 +51,7 @@ def convert(amount, from_currency, to_currency):
     try:
         response = session.get(url, params=params)
         data = json.loads(response.text)
-        print(json.dumps(data, indent=4))
+        # print(json.dumps(data, indent=4))
         if data['status']['error_code'] == 0:
             price = get_price(data, from_currency, to_currency)
             print(f'{amount} {from_currency} is {price} {to_currency}')
