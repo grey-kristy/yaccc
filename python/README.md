@@ -3,7 +3,7 @@
 
 Usage:
 
-yaccc 0.5 BTC USD
+yaccc.py 0.5 BTC USD
 
 To use real data replace API_URL to
 
