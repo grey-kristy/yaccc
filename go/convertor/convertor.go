@@ -22,9 +22,7 @@ type apiResp struct {
 		ErrorCode int    `json:"error_code"`
 		ErrorMsg  string `json:"error_message"`
 	} `json:"Status"`
-	Data struct {
-		Quote map[string]json.RawMessage `json:"Quote"`
-	} `json:"Data"`
+	Data map[string]json.RawMessage `json:"Data"`
 }
 
 type quote struct {
@@ -74,6 +72,22 @@ func processError(errMsg string) {
 	}
 }
 
+func getNextJson(key string, data map[string]json.RawMessage) map[string]json.RawMessage {
+	var row map[string]json.RawMessage
+
+	if _, ok := data[key]; !ok {
+		fmt.Printf("no key \"%s\" in json: %s", key, data)
+		return nil
+	}
+
+	if err := json.Unmarshal(data[key], &row); err != nil {
+		fmt.Printf("json decode error: ", err)
+		return nil
+	}
+
+	return row
+}
+
 func Convert(amount float64, from_currency string, to_currency string) float64 {
 	req := prepareReq(amount, from_currency, to_currency)
 	body, err := getBody(req)
@@ -93,8 +107,19 @@ func Convert(amount float64, from_currency string, to_currency string) float64 {
 		return 0
 	}
 
+	var row map[string]json.RawMessage
+	if _, ok := data.Data[from_currency]; ok {
+		row = getNextJson("quote", getNextJson(from_currency, data.Data))
+	} else {
+		row = getNextJson("quote", data.Data)
+	}
+
+	if row == nil {
+		return 0
+	}
+
 	var quote quote
-	if err := json.Unmarshal(data.Data.Quote[to_currency], &quote); err != nil {
+	if err := json.Unmarshal(row[to_currency], &quote); err != nil {
 		fmt.Printf("json decode error: ", err)
 		return 0
 	}
